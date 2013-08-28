@@ -11,7 +11,7 @@
  * You can modify and filter all the values right in the form
  * You can create dynamic forms with array values
 
-Read full documentation here http://1000forms.lanin.me
+You can find full documentation here: http://1000forms.lanin.me
 
 #### Simple example
 
