@@ -43,3 +43,5 @@ if ($form->isValid()) {
 // Print our form
 print $form;
 ```
+
+Released under MIT license.
