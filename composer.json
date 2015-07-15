@@ -1,0 +1,13 @@
+{
+    "name": "lanin/1000forms",
+    "description": "An easy way to create forms of any complexity with integrated validation and filtration",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Maxim Lanin",
+            "email": "max@lanin.me"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}

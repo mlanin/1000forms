@@ -1,30 +1,8 @@
 <?php
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2012 Maxim Lanin
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
- *
- * @author Maxim Lanin <max@lanin.me>
- */
 
-class Forms {
+namespace Lanin\Forms;
+
+class Form {
 
     const   ENCTYPE_URLENCODED = 'application/x-www-form-urlencoded',
             ENCTYPE_MULTIPART  = 'multipart/form-data';
@@ -36,15 +14,18 @@ class Forms {
             ERR_INTEGER     = 'Input "%s" must be integer',
             ERR_FLOAT       = 'Input "%s" must be float',
             ERR_NUMERIC     = 'Input "%s" must be a number',
+            ERR_STRING      = 'Input "%s" must be a string',
             ERR_EMAIL       = 'Input "%s" must be a valid EMail',
             ERR_URL         = 'Input "%s" must be a valid URL',
             ERR_IP          = 'Input "%s" must be a valid IP address',
             ERR_MAXLENGTH   = 'Input "%s" must not be longer then %d characters',
             ERR_MINLENGTH   = 'Input "%s" must not be shorter then %d characters',
-            ERR_LENGTH      = 'Input "%s" must be %d characters';
+            ERR_LENGTH      = 'Input "%s" must be %d characters',
+            ERR_CALLBACK    = 'Input "%s" is not valid';
 
     /**
      * Default options of an element
+     *
      * @var array
      */
     protected $defaults = array(
@@ -63,17 +44,20 @@ class Forms {
 
     /**
      * Default layout of an element
+     *
      * @var string
      */
     protected $defaultLayout = '${prefix}${label}${input}${description}${suffix}';
 
     /**
      * Name of the form
+     *
      * @var string
      */
     protected $name = '';
     /**
      * Options of the form
+     *
      * @var array
      */
     protected $options = array(
@@ -88,51 +72,60 @@ class Forms {
 
     /**
      * Array of elements
+     *
      * @var array
      */
     protected $elements = array();
     /**
      * Array of submit buttons
+     *
      * @var array
      */
     protected $buttons  = array();
 
     /**
      * Form state
+     *
      * @var array
      */
     protected $formState = array();
     /**
      * Validation state
+     *
      * @var boolean
      */
     protected $validationState = false;
     /**
      * Submit button that was clicked
+     *
      * @var string
      */
     protected $submittedButton = '';
 
     /**
      * If form must remove empty values from the formState
+     *
      * @var boolean
      */
     protected $removeEmpty = false;
 
     /**
      * If form was inited
+     *
      * @var boolean
      */
     protected $inited = false;
 
     /**
      * Elements counter
+     *
      * @var integer
      */
-    protected $count  = 0;
+    protected $count = 0;
 
     /**
      * Raw data from the form
+     *
      * @var array
      */
     protected $data = array();
@@ -157,6 +150,7 @@ class Forms {
 
     /**
      * Set name of the form
+     *
      * @param string $name
      */
     public function setName($name) {
@@ -166,12 +160,13 @@ class Forms {
     /**
      * Remove Empty values from formstate
      */
-    public function rempveEmpty() {
+    public function removeEmpty() {
         $this->removeEmpty = true;
     }
 
     /**
      * Set options of the form
+     *
      * @param array $options
      */
     public function setOptions(array $options) {
@@ -182,6 +177,7 @@ class Forms {
 
     /**
      * Add element to the form
+     *
      * @param string $type
      * @param string $name
      * @param array $options
@@ -207,13 +203,13 @@ class Forms {
         // Create element array
         $options = array_merge_replace($this->defaults, $options);
         $element = $options + array(
-            'id'    => $id,
-            'type'  => $type,
-            'name'  => $name,
-            'path'  => $path,
-            'validate'  => $validators,
-            'filter'    => $filters,
-        );
+                'id'    => $id,
+                'type'  => $type,
+                'name'  => $name,
+                'path'  => $path,
+                'validate'  => $validators,
+                'filter'    => $filters,
+            );
 
         // If template isn't set, use default
         if (!isset($element['layout'])) {
@@ -250,8 +246,9 @@ class Forms {
     /**
      * Makes inner ID from the name
      * eg. if name is foo[bar][baz], path will be foo_bar_baz
-     * @param type $name
-     * @return type
+     * 
+     * @param string $name
+     * @return string
      */
     protected function getElementID($name) {
         return str_replace(array('[]', '][', ']', '['), array('', '_', '', '_'), $name);
@@ -260,6 +257,7 @@ class Forms {
     /**
      * Generates path of the element from an ID
      * eg. if name is foo_bar_baz, path will be array('foo', 'bar', 'baz')
+     * 
      * @param string $id
      * @return array
      */
@@ -270,7 +268,8 @@ class Forms {
     /**
      * Generates path of the element from an ID
      * eg. if name is foo_bar_baz, path will be array('foo', 'bar', 'baz')
-     * @param string $id
+     * 
+     * @param string $element
      * @return array
      */
     protected function getDefaultState($element) {
@@ -279,20 +278,19 @@ class Forms {
 
     /**
      * Sets weight of an element
+     * 
      * @param array $element
      */
     protected function setWeight(&$element) {
         $this->count++;
 
-        if (!isset($element['options']['weight'])) {
-            $weight = $this->count;
-        }
-        $element['weight'] = floatval($weight);
+        $element['weight'] = isset($element['options']['weight']) ? $element['options']['weight'] : $this->count;
     }
 
     /**
      * Returns if form is valid
      * WARNING! If you don't call it, formState will stay in default state
+     * 
      * @return boolean
      */
     public function isValid() {
@@ -314,6 +312,7 @@ class Forms {
 
     /**
      * Makes validation of data
+     * 
      * @param array $data
      * @return boolean
      */
@@ -398,7 +397,7 @@ class Forms {
             if (is_callable($callback)) {
                 if (!call_user_func_array($callback, array($this->formState))) {
                     $errors++;
-                    $this->error(isset($validate['message']) ? $validate['message'] : sprintf(self::ERR_CALLBACK, $element['label']));
+                    $this->error(($validate['message']));
                 }
             } else {
                 $this->error('No such validator ' . $validate['name'] . 'Validator');
@@ -411,8 +410,11 @@ class Forms {
 
     /**
      * Makes validation of values
+     *
+     * @param mixed $values
      * @param array $element
      * @return int
+     * @throws \Exception
      */
     protected function validateValue($values, &$element) {
         $error = false;
@@ -429,7 +431,7 @@ class Forms {
                     case 'required':
                         if ($value == '' || $value == '-default-') {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_REQUIRED, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_REQUIRED, $element['label']);
 
                             $exit = true;
                         }
@@ -438,84 +440,83 @@ class Forms {
                     case 'integer':
                         if (!preg_match('/^([0-9]+)$/', $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_INTEGER, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_INTEGER, $element['label']);
                         }
                         break;
                     case 'float':
                         if (filter_var($value, FILTER_VALIDATE_FLOAT) === false) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_FLOAT, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_FLOAT, $element['label']);
                         }
                         break;
                     case 'num':
                     case 'numeric':
                         if (!preg_match('/^([0-9.]+)$/', $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_NUMERIC, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_NUMERIC, $element['label']);
                         }
                         break;
                     case 'str':
                     case 'string':
                         if (!preg_match('/^([0-9a-zA-Z]+)$/', $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_STRING, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_STRING, $element['label']);
                         }
                         break;
                     case 'email':
                         if (!preg_match('/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/ ', $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_EMAIL, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_EMAIL, $element['label']);
                         }
                         break;
                     case 'url':
                         if (!preg_match('/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/', $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_URL, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_URL, $element['label']);
                         }
                         break;
                     case 'maxlength':
                         if (strlen($value) > $validate['length']) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_MAXLENGTH, $element['label'], $validate['length']);
+                                $validate['message'] : sprintf(self::ERR_MAXLENGTH, $element['label'], $validate['length']);
                         }
                         break;
                     case 'minlenght':
                         if (strlen($value) < $validate['length']) {
-                            $error = 1;
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_MAXLENGTH, $element['label'], $validate['length']);
+                                $validate['message'] : sprintf(self::ERR_MAXLENGTH, $element['label'], $validate['length']);
                         }
                         break;
                         break;
                     case 'lenght':
                         if (strlen($value) != $validate['length']) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_MAXLENGTH, $element['label'], $validate['length']);
+                                $validate['message'] : sprintf(self::ERR_MAXLENGTH, $element['label'], $validate['length']);
                         }
                         break;
                     case 'ip':
                         if (!preg_match('/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/', $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_IP, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_IP, $element['label']);
                         }
                         break;
                     case 'regexp':
                         if (!preg_match($validate['pattern'], $value)) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_IP, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_IP, $element['label']);
                         }
                         break;
                     case 'callback':
                         if (!call_user_func_array($validate['callback'], array($value))) {
                             $error = isset($validate['message']) ?
-                                    $validate['message'] : sprintf(self::ERR_CALLBACK, $element['label']);
+                                $validate['message'] : sprintf(self::ERR_CALLBACK, $element['label']);
                         }
                         break;
                     default:
                         if (is_callable(array($this, $validate['name'] . 'Validator'))) {
                             if (!call_user_func_array(array($this, $validate['name'] . 'Validator'), array($value))) {
                                 $error = isset($validate['message']) ?
-                                        $validate['message'] : sprintf(self::ERR_CALLBACK, $element['label']);
+                                    $validate['message'] : sprintf(self::ERR_CALLBACK, $element['label']);
                             }
                         }
                         break;
@@ -538,6 +539,7 @@ class Forms {
 
     /**
      * Filters values
+     * 
      * @param mixed $values
      * @param array $element
      */
@@ -556,7 +558,8 @@ class Forms {
     }
 
     /**
-     * Filteres single value
+     * Filters single value
+     * 
      * @param mixed $value
      * @param array $filter
      * @return mixed
@@ -602,6 +605,12 @@ class Forms {
         return $value;
     }
 
+    /**
+     * If form is the same as required
+     * 
+     * @param string $name
+     * @return bool
+     */
     protected function checkForm($name) {
         return $name == $this->name;
     }
@@ -632,13 +641,14 @@ class Forms {
 
     /**
      * Removes path from an tree array
+     * 
      * @param array $path
      * @param array $state
      */
     protected function removePathFromTree($path, &$state) {
         $key = array_shift($path);
         if (count($path) != 0) {
-            $state[$key] = $this->removePathFromTree($path, $state[$key]);
+            $this->removePathFromTree($path, $state[$key]);
         } else {
             unset($state[$key]);
         }
@@ -646,6 +656,7 @@ class Forms {
 
     /**
      * Returns array of validated values
+     * 
      * @return array
      */
     public function getFormState() {
@@ -654,6 +665,7 @@ class Forms {
 
     /**
      * Returns array of validated values
+     * 
      * @return array
      */
     public function getSubmittedButton() {
@@ -680,6 +692,7 @@ class Forms {
 
     /**
      * Prepares element for html-generation
+     * 
      * @param array $element
      */
     protected function preprocessElement(&$element) {
@@ -698,6 +711,7 @@ class Forms {
 
     /**
      * Creates element by its template
+     * 
      * @param array $element
      * @return string
      */
@@ -713,7 +727,7 @@ class Forms {
             $html  = '';
 
             if ($part == 'input') {
-                if ($element['type'] instanceof Closure) {
+                if ($element['type'] instanceof \Closure) {
                     $html .= call_user_func_array($element['type'], array($element));
                 } else {
                     $html .= $this->{'create' . $element['type']}($element);
@@ -731,12 +745,13 @@ class Forms {
 
     /**
      * Creates select
+     * 
      * @param array $element
      * @return string
      */
     protected function createSelect($element) {
         $html = '<select name="' . $element['name'] . '" id="' . $element['id'] . '"' .
-                $this->returnAttributes($element['attributes']) . '>';
+            $this->returnAttributes($element['attributes']) . '>';
 
         foreach ($element['options'] as $value => $title) {
             $selected = '';
@@ -751,7 +766,7 @@ class Forms {
                 }
             }
             $html .= '<option value="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"' . $selected . '>' .
-                    $title . '</option>';
+                $title . '</option>';
         }
 
         $html .= '</select>';
@@ -761,6 +776,7 @@ class Forms {
 
     /**
      * Creates radiobutton
+     * 
      * @param array $element
      * @return string
      */
@@ -782,8 +798,8 @@ class Forms {
                 }
             }
             $html .= '<input type="radio" name="' . $element['name'] . '" id="' . $element['id'] . '-' . $i .
-                    '" value="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"' . $checked . '' .
-                    $attributes . '/><label for="' . $element['name'] . '-' . $i . '">' . $title . '</label>';
+                '" value="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"' . $checked . '' .
+                $attributes . '/><label for="' . $element['name'] . '-' . $i . '">' . $title . '</label>';
         }
 
         return $html;
@@ -791,6 +807,7 @@ class Forms {
 
     /**
      * Creates checkbox
+     * 
      * @param array $element
      * @return string
      */
@@ -809,7 +826,7 @@ class Forms {
         }
 
         $html .= '<input type="checkbox" name="' . $element['name'] . '" id="' . $element['id'] .
-                '" value="' . $element['name'] . '" ' . $checked;
+            '" value="' . $element['name'] . '" ' . $checked;
         $html .= $this->returnAttributes($element['attributes']) . ' />';
 
         return $html;
@@ -817,6 +834,7 @@ class Forms {
 
     /**
      * Creates textfield
+     * 
      * @param array $element
      * @return string
      */
@@ -833,22 +851,24 @@ class Forms {
 
     /**
      * Creates password
+     * 
      * @param array $element
      * @return string
      */
     protected function createPassword($element) {
         return '<input type="password" id="' . $element['name'] . '" name="' . $element['id'] . '" ' .
-                $this->returnAttributes($element['attributes']) . ' />';
+        $this->returnAttributes($element['attributes']) . ' />';
     }
 
     /**
      * Creates textarea
+     * 
      * @param array $element
      * @return string
      */
     protected function createTextarea($element) {
         $html = '<textarea name="' . $element['name'] . '" id="' . $element['id'] .
-                $this->returnAttributes($element['attributes']) . '>';
+            $this->returnAttributes($element['attributes']) . '>';
 
         if ($element['value'] != '') {
             $html .= htmlspecialchars($element['value'], ENT_QUOTES, 'UTF-8');
@@ -863,13 +883,14 @@ class Forms {
 
     /**
      * Creates hidden element
+     * 
      * @param array $element
      * @return string
      */
     protected function createHidden($element) {
         return '<input type="hidden" id="' . $element['name'] . '" name="' . $element['name'] . '" value="' .
-                htmlspecialchars($element['value'], ENT_QUOTES, 'UTF-8') . '"' .
-                $this->returnAttributes($element['attributes']) . ' />';
+        htmlspecialchars($element['value'], ENT_QUOTES, 'UTF-8') . '"' .
+        $this->returnAttributes($element['attributes']) . ' />';
     }
 
     /**
@@ -880,22 +901,24 @@ class Forms {
      */
     protected function createButton($element) {
         return '<input type="button" name="' . $element['name'] . '" id="' .
-                $element['id'] . '" value="' . $element['value'] . '"' .
-                $this->returnAttributes($element['attributes']) . ' />';
+        $element['id'] . '" value="' . $element['value'] . '"' .
+        $this->returnAttributes($element['attributes']) . ' />';
     }
 
     /**
      * Creates submit
+     * 
      * @param array $element
      * @return string
      */
     protected function createSubmit($element) {
         return '<input type="submit" name="' . $element['name'] . '" id="' . $element['id'] . '" value="' . $element['value'] . '"' .
-                $this->returnAttributes($element['attributes']) . ' />';
+        $this->returnAttributes($element['attributes']) . ' />';
     }
 
     /**
      * Creates label
+     * 
      * @param array $element
      * @return string
      */
@@ -905,6 +928,7 @@ class Forms {
 
     /**
      * Creates description
+     * 
      * @param array $element
      * @return string
      */
@@ -914,6 +938,7 @@ class Forms {
 
     /**
      * Creates Errors
+     * 
      * @param array $element
      * @return string
      */
@@ -923,6 +948,7 @@ class Forms {
 
     /**
      * Creates prefix
+     * 
      * @param array $element
      * @return string
      */
@@ -932,6 +958,7 @@ class Forms {
 
     /**
      * Creates suffix
+     * 
      * @param array $element
      * @return string
      */
@@ -939,11 +966,16 @@ class Forms {
         return !empty($element['suffix']) ? $element['suffix'] . "\r\n" : '';
     }
 
+    /**
+     * Creates form
+     * 
+     * @return array
+     */
     protected function createForm() {
         $form  = $this->createPrefix($this->options);
         $form .= '<form method="' . $this->options['method'] . '" name="' . $this->name .
-                '" id="' . $this->name . '" action="' . $this->options['action'] . '" enctype="' .
-                $this->options['enctype'] . '"' . $this->returnAttributes($this->options['attributes']) . '>' . "\r\n";
+            '" id="' . $this->name . '" action="' . $this->options['action'] . '" enctype="' .
+            $this->options['enctype'] . '"' . $this->returnAttributes($this->options['attributes']) . '>' . "\r\n";
 
         $array = array(
             'form' => $form,
@@ -955,16 +987,18 @@ class Forms {
 
     /**
      * Throws an error message
+     * 
      * @param string $error
-     * @param integer $code
-     * @throws Exception
+     * @param int $code
+     * @throws \Exception
      */
-    public function error($error, $element) {
-        throw new Exception($error, $code);
+    public function error($error, $code = 0) {
+        throw new \Exception($error, $code);
     }
 
     /**
      * Helper to sort elements
+     * 
      * @param array $a
      * @param array $b
      * @return int
@@ -978,6 +1012,7 @@ class Forms {
 
     /**
      * Generate html code
+     * 
      * @return string
      */
     public function generate() {
@@ -996,6 +1031,7 @@ class Forms {
 
     /**
      * Form a template from the form array
+     * 
      * @param array $_vars
      * @param string $_template
      * @return string
@@ -1007,20 +1043,21 @@ class Forms {
         extract($_vars);
 
         ob_start();
-        include($_template);
+        include $_template;
         return ob_get_clean();
     }
 
     /**
      * Generate HTML of elements and makes an array from them
+     * 
      * @return array
      */
     public function toArray() {
         $class = 'form_' . $this->name;
-        if (isset($this->options['attriputes']['class'])) {
-            $class = $class . ' ' . $this->options['attriputes']['class'];
+        if (isset($this->options['attributes']['class'])) {
+            $class = $class . ' ' . $this->options['attributes']['class'];
         }
-        $this->options['attriputes']['class'] = $class;
+        $this->options['attributes']['class'] = $class;
 
         $array = $this->createForm();
 
@@ -1041,6 +1078,7 @@ class Forms {
 
     /**
      * Generate html code
+     * 
      * @return string
      */
     public function __toString() {
@@ -1050,6 +1088,7 @@ class Forms {
 
 /**
  * Merges two arrays with replacing similar keys
+ * 
  * @param array $array
  * @param array $newValues
  * @return array
