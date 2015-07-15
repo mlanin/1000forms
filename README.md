@@ -1,7 +1,5 @@
-1000Forms
+1000 Forms
 =========
-
-"1000Forms" is a single file which you can copy and paste to any place of your project.
 
 #### Features
  * It can be used in any sort of projects to build any sort of forms.
@@ -17,11 +15,9 @@ You can find full documentation here: http://1000forms.lanin.me
 
 ```php
 <?php
-// Include main file
-include_once 'class.forms.php';
  
 // Initialise object
-$form = new Form();
+$form = new \Lanin\Forms\Form();
  
 // Set name of our form
 $form->setName('login_form');
