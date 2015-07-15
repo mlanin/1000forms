@@ -8,6 +8,11 @@
             "email": "max@lanin.me"
         }
     ],
+    "autoload": {
+        "psr-4": {
+           "Lanin\\Forms\\": "src/"
+        }
+    },
     "minimum-stability": "dev",
     "require": {}
 }
